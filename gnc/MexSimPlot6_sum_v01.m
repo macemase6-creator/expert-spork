@@ -1,0 +1,353 @@
+%%  
+% close all;    
+
+function [XYZ1_m2t] = MexSimPlot6_sum_v01(pls,sim,splot)
+% clc; 
+global plot_flg noise_choice 
+% flags = flagss;
+noise=length(pls);%1:6;
+%  noise=1:3;
+
+stg =sim.Stage;
+% stg =4;
+
+% plot_flg = 1;
+handles = struct();
+
+handles.sim        = [];
+handles.sim_err        = [];
+handles.DataCnt=0;
+r2d=180./pi;    d2r = pi/180.;
+handles.r2d = r2d  ;
+handles.d2r= d2r  ;
+% handles.noise = noise;
+handles.stg=[];
+
+handles.TFlag=0;   handles.TRange = [0 1000];
+% handles.TFlag=0;   handles.TRange = [abs(flags(2)-0) abs(flags(3)+5)];
+% handles.TFlag=0;   %handles.TRange = [abs(flags(2)-0) abs(flags(3)+5)];
+% handles.Ftitle        = append('launp0_',num2str(sim.launp0),'_TrgtCnt0_',num2str(sim.TrgtCnt0),'_ctrl_',num2str(sim.ctrlNo));
+ handles.Ftitle       = append('ctrl_',num2str(sim.MultiTrgt),'_L',num2str(splot.launp0),'T',num2str(splot.TrgtCnt0),'_Range_',num2str(splot.Rng));
+
+i=1;
+FilesNameType3       = {'plsfile'};
+FilesNameType4       = {'err'};
+FilesNameField2       = {'h'};
+FILE = 'noise';
+% FILE2 = 'err.dat';
+cnt=0;
+cnt_ii=0;
+FilesField3{i} = strcat(FilesNameField2{i},'_',FilesNameType3{i});
+% FilesField4{i} = strcat(FilesNameField2{i},'_',FilesNameType4{i});
+
+        
+    for j=1:noise%size(noise,2)
+        cnt=cnt+1;
+            noise_choice = j;%noise(j);
+%             handles.Ftitle{j}        = append('ctrl_',num2str(sim.ctrlNo),'_TrgtCnt0_',num2str(sim.TrgtCnt0),'_Range_',num2str(cnt));
+
+            
+            handles.gn_cnt(cnt) = j;%ii;
+            handles.DataCnt = (handles.DataCnt)+1;
+            handles.noise(cnt) = j;%noise(j);
+%             load(append(FILE,num2str(noise(j)),'.mat'));
+            idx =nnz(pls{j,1}(:,1));
+            handles.sim(cnt).(FilesField3{i}) = pls{j,1}(1:idx,:);%R2000';
+            h = handles.sim(cnt).(FilesField3{i});
+%             handles.sim_err(cnt).(FilesField4{i}) = rmmissing(load(FILE2));
+           
+            
+            StgsInd=findchangepts(h(:,37),'MaxNumChanges',6);
+            stgs = [h(StgsInd,1),h(StgsInd,37),StgsInd];
+            t_stg = stgs(stgs(:,2)==stg,1);
+            
+             t_f(cnt) = handles.sim(cnt).(FilesField3{i})(end,1);
+%              t_s(cnt) = t_stg;
+%             handles.stg(cnt)=stgs;
+%             if(splot.print)
+            Xer=h(end,2)-h(end,67);
+            Yer=h(end,3)-h(end,68);
+            Zer=h(end,4)-h(end,69);
+            XYZ1_m2t(j,1:3) = [Xer,Yer,Zer];
+            erre_XYZ2(j,1:3) = [h(end,73),h(end,75),h(end,74)];
+%             end
+    end
+if(splot.print)
+    XYZ1_m2t
+end
+% erre_XYZ2
+max_t=max(t_f);
+% handles.TRange = [min(t_s)-5 max(t_f)+5];
+handles.TRange(2) = [abs(max_t)+5];
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% % disp(['please wait for plotting...'])
+% plot_flg = 1;
+% SimPlot1(handles);
+% disp(['plotting ends.'])
+        
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ plot_flg = 1;
+% answer = questdlg('Would you like to plot results?',...
+%     'Select choice ','Yes all','Yes','No','No');
+% % Handle response
+%     switch answer
+%         case 'Yes all'
+%             %         disp([answer ' plotting...'])
+%             
+%             plot_flg = 1;
+%             
+%         case 'Yes'
+%     %         disp([answer ' plotting...'])
+%             plot_flg = 1;
+% 
+%         case 'No'
+%     %         disp([answer ' coming right up.'])
+%             plot_flg = 0;
+% %             return;
+%     end
+
+    if plot_flg==1
+%         disp(['please wait for plotting...'])
+        SimPlot1(handles);
+%         disp(['plotting ends.'])
+    end
+end
+
+%%
+
+function  SimPlot1(handles)
+% assignin('base','handles',handles);
+    handles.sz_h=[];
+    sublegs9 = [];
+    sublegs4 = [];
+    sublegs4 =[];
+    indxleg=1;
+    InCnt = 0;
+    
+    r2d = handles.r2d;
+    d2r = handles.d2r;
+    
+
+
+
+%     hfig = figure;
+%     hfig = figure('NumberTitle','on');%figure;
+    hfig = figure('Name',handles.Ftitle,'NumberTitle','on');
+    tabgp = uitabgroup(hfig);
+
+
+%     handles.tab_titles={'1tetam','2phim','3psim','4ayc','5apc','6gama','7alfa','8Wx','9Wy','10Wz',...
+    handles.tab_titles={'1tetam','2phim','3psim','4ayc','5apc','6tgoc','7alfa','8Wx','9Wy','10Wz',...
+    '11Ax','12Ay','13Az','14Vx','15Vy','16Vz','17Vm','18X','19Y','20Z',...
+        '21Hm','22q','23Stage','24dela','25delr','26dele','27dac 1&3','28dac 2&4','29slantR','30gains'};%,'36erre'};
+ 
+    handles.legtitles={'tetac & tetam ','phim ','psim','ayc & azbb','apc & aybb','tgoc','alfa & alfab',...
+        'Wx','Wy','Wz','Ax','Ay','Az','vxm','vym','vzm','mach & vm','Xm & Xt','Ym & Yt','Zm & Zt','hm','q','stage',...
+        'dela','delrc & delrc0','delec & delec0','dac1 & dac3','dac2 & dac4','slantR '};%,'erre0 & erre1 & erre2'};%,'Pitch'};%,'Wy_phase','Wz_phase'};%,'CMDs'};
+
+
+    for j=1:size(handles.legtitles,2)
+        expression = '\&';
+        ends{j} = regexp(handles.legtitles{j},expression,'split');
+        legends{j} =[];
+        sublegs9{j}=[];
+%         sublegsp{j}=[];
+        leg_sz=j;
+    end
+    
+    for j=1:20  ,sublegs4{j}=[]; end
+
+    for k=1:size(handles.tab_titles,2)
+        tabfield{k} = strcat('tab',num2str(k));
+        axesfield{k} = strcat('tab_axes',num2str(k));
+        tab.(tabfield{k})= uitab(tabgp,'Title',handles.tab_titles{k});
+        tab_axes.(axesfield{k})= axes('parent',tab.(tabfield{k}));
+        hold(tab_axes.(axesfield{k}),'on');
+        grid(tab_axes.(axesfield{k}),'on');
+
+        if handles.TFlag==1
+            xlim(tab_axes.(axesfield{k}),[handles.TRange(1) handles.TRange(2)])
+%             xlim(tab_axes.(axesfield{k}),[handles.TRange(1) (handles.sim(1).h_plsfile(end,1))])
+        else
+            xlim auto
+        end
+
+    end
+    
+
+    for inx=1:(handles.DataCnt)%size(handles.sim,1)%
+     checked=1;%handles.CHKs(inx);
+     legs{inx}={append('noise _ ',num2str(handles.noise(inx)),' _ gncnt ',num2str(handles.gn_cnt(inx)))};%handles.data(inx).name;%name(inx).name;
+%      legs{inx}={'noise _ '};%handles.data(inx).name;%name(inx).name;
+
+%     hfig.Name=handles.Ftitle{inx};
+     leg=string(legs{inx});
+%      leg=string(handles.noise);
+
+        if checked ==1
+            InCnt = InCnt+1;
+            h = handles.sim(inx).h_plsfile;
+%             h_err = handles.sim_err(inx).h_err;
+%             
+%             if h_err(1,1)<25.
+%                 h_err(:,4)=h_err(:,4);%*r2d;
+%             end
+           
+%             h(:,87:89) = limiter(h(:,87:89),30);
+% %             h(:,91:93) = limiter(h(:,91:93),20*d2r);
+%             h(:,71:81) = limiter(h(:,71:81),20);
+            
+            
+%     plot(tab_axes.('tab_axes1'),h(:,1),h(:,17),h(:,1),h(:,16),'LineWidth',1);
+%     plot(tab_axes.('tab_axes4'),h(:,1),h(:,19),h(:,1),h(:,62)/9.81,'LineWidth',1);
+%     plot(tab_axes.('tab_axes5'),h(:,1),h(:,21),h(:,1),h(:,63)/9.81,'LineWidth',1);
+
+    plot(tab_axes.('tab_axes1'),h(:,1),h(:,17),'--',h(:,1),h(:,16),'LineWidth',1);
+    plot(tab_axes.('tab_axes2'),h(:,1),h(:,14),'LineWidth',1);
+    plot(tab_axes.('tab_axes3'),h(:,1),h(:,15),'LineWidth',1);
+    plot(tab_axes.('tab_axes4'),h(:,1),h(:,19),'--',h(:,1),h(:,18)/1,'LineWidth',1);
+    plot(tab_axes.('tab_axes5'),h(:,1),h(:,21),'--',h(:,1),h(:,20)/1,'LineWidth',1);
+%     plot(tab_axes.('tab_axes6'),h(:,1),h(:,38),'--',h(:,1),h(:,39),'LineWidth',1);
+     plot(tab_axes.('tab_axes6'),h(:,1),h(:,65),'LineWidth',1);
+%     plot(tab_axes.('tab_axes7'),h(:,1),h(:,27),h(:,1),h(:,63),h(:,1),h(:,28),'LineWidth',1);
+    plot(tab_axes.('tab_axes7'),h(:,1),h(:,27),h(:,1),h(:,63),'--','LineWidth',1);
+
+    plot(tab_axes.('tab_axes8'),h(:,1),h(:,11)*r2d,'LineWidth',1);
+    plot(tab_axes.('tab_axes9'),h(:,1),h(:,12)*r2d,'LineWidth',1);
+    plot(tab_axes.('tab_axes10'),h(:,1),h(:,13)*r2d,'LineWidth',1);
+    plot(tab_axes.('tab_axes11'),h(:,1),h(:,8)/9.81,'LineWidth',1);
+    plot(tab_axes.('tab_axes12'),h(:,1),h(:,9)/9.81,'LineWidth',1);
+    plot(tab_axes.('tab_axes13'),h(:,1),h(:,10)/9.81,'LineWidth',1);
+    plot(tab_axes.('tab_axes14'),h(:,1),h(:,5),'LineWidth',1);
+    plot(tab_axes.('tab_axes15'),h(:,1),h(:,6),'LineWidth',1);
+    plot(tab_axes.('tab_axes16'),h(:,1),h(:,7),'LineWidth',1);
+    plot(tab_axes.('tab_axes17'),h(:,1),h(:,34),h(:,1),h(:,26)/340,'--','LineWidth',1);
+    plot(tab_axes.('tab_axes18'),h(:,1),h(:,2),h(:,1),h(:,67),'--','LineWidth',1);
+    plot(tab_axes.('tab_axes19'),h(:,1),h(:,3),h(:,1),h(:,68),'--','LineWidth',1);
+    plot(tab_axes.('tab_axes20'),h(:,1),h(:,4),h(:,1),h(:,69),'--','LineWidth',1);
+    plot(tab_axes.('tab_axes21'),h(:,2),h(:,25),'LineWidth',1);
+    % plot(tab_axes.('tab_axes22'),h(:,1),h(:,36),'LineWidth',1);
+    plot(tab_axes.('tab_axes22'),h(:,1),h(:,36),'LineWidth',1);
+
+    plot(tab_axes.('tab_axes23'),h(:,1),h(:,37),'LineWidth',1);
+    plot(tab_axes.('tab_axes24'),h(:,1),h(:,87)*1,'LineWidth',1);
+    plot(tab_axes.('tab_axes25'),h(:,1),h(:,90)*1,h(:,1),h(:,88)*1,'--','LineWidth',1);
+    plot(tab_axes.('tab_axes26'),h(:,1),h(:,91)*1,h(:,1),h(:,89)*1,'--','LineWidth',1);
+    plot(tab_axes.('tab_axes27'),h(:,1),h(:,43),h(:,1),h(:,45),'LineWidth',1);
+    plot(tab_axes.('tab_axes28'),h(:,1),h(:,44),h(:,1),h(:,46),'LineWidth',1);
+    plot(tab_axes.('tab_axes29'),h(:,1),h(:,31),'LineWidth',1);
+%     plot(tab_axes.('tab_axes30'),h(:,1),h(:,56),'LineWidth',1);
+
+%     plot(tab_axes.('tab_axes31'),h(:,1),h(:,53),'LineWidth',1);
+%     plot(tab_axes.('tab_axes32'),h(:,1),h(:,55),'LineWidth',1);
+% 
+%     plot(tab_axes.('tab_axes33'),h(:,1),h(:,29),'LineWidth',1);
+%     plot(tab_axes.('tab_axes34'),h(:,1),h(:,33)/9.81,h(:,1),h(:,62)/9.81,'LineWidth',1);
+%     plot(tab_axes.('tab_axes35'),h(:,1),h(:,61),'LineWidth',1);
+% %     ax1 =subplot(2,2,1,tab_axes.('tab_axes36'));
+%     plot(tab_axes.('tab_axes36'),h(:,1),1./h(:,65),'LineWidth',1);
+% %     ax2=subplot(2,2,2,tab_axes.('tab_axes36'));
+% %     plot(ax2,h(:,1),1/h(:,65),'LineWidth',1);
+% 
+% %     plot(tab_axes.('tab_axes35'),h(:,1),h(:,61),h(:,1),sqrt((h(:,67)-h(:,2)).^2+(h(:,69)-h(:,4)).^2),'--','LineWidth',1);
+% 
+%     %     plot(tab_axes.('tab_axes36'),h(:,1),h(:,73),h(:,1),h(:,74),h(:,1),h(:,75),'LineWidth',1);
+%%%%%%%%%%%%%  
+     axes('parent',tab.(tabfield{leg_sz+1}));
+    for j=1:12 
+        axi1(j) = subplot(4,3,j);
+        sublegs9{j}=[sublegs9{j} leg];
+    end
+    
+    plot(axi1(1),h(:,1),h(:,76),'LineWidth',1);title(axi1(1),'Kwp');%leggs=[leggs leg];%legend(axi1(1),leggs)%
+    plot(axi1(2),h(:,1),h(:,77),'LineWidth',1);title(axi1(2),'kpp ');%leggs=[leggs leg];%legend(axi1(2),leggs)%
+    plot(axi1(3),h(:,1),h(:,78),'LineWidth',1);title(axi1(3),'kip ');
+    plot(axi1(4),h(:,1),h(:,79),'LineWidth',1);title(axi1(4),'kwac ');
+    plot(axi1(5),h(:,1),h(:,80),'LineWidth',1);title(axi1(5),'kpac ');
+    plot(axi1(6),h(:,1),h(:,81),'LineWidth',1);title(axi1(6),'kiac ');
+    plot(axi1(7),h(:,1),h(:,82),'LineWidth',1);title(axi1(7),'kwr ');
+    plot(axi1(8),h(:,1),h(:,83),'LineWidth',1);title(axi1(8),'kpr ');
+    plot(axi1(9),h(:,1),h(:,84),'LineWidth',1);title(axi1(9),'kir ');
+    plot(axi1(10),h(:,1),h(:,76),'LineWidth',1);title(axi1(10),'kwp ');
+    plot(axi1(11),h(:,1),h(:,85),'LineWidth',1);title(axi1(11),'kpg ');
+    plot(axi1(12),h(:,1),h(:,86),'LineWidth',1);title(axi1(12),'kig ');
+
+    %     legend(axi1,leggs)%
+    hold(axi1,'on');grid(axi1,'on');
+    
+%      axes('parent',tab.(tabfield{leg_sz+2}));
+%     for j=1:4 
+%         axi2(j) = subplot(2,2,j);
+% %         sublegs9{j}=[sublegs9{j} leg];
+%     end
+%     
+%     plot(axi2(1),h(:,1),h(:,92),'LineWidth',1);title(axi2(1),'hinge moment 1');%leggs=[leggs leg];%legend(axi1(1),leggs)%
+%     plot(axi2(2),h(:,1),h(:,93),'LineWidth',1);title(axi2(2),'hinge moment 2 ');%leggs=[leggs leg];%legend(axi1(2),leggs)%
+%     plot(axi2(3),h(:,1),h(:,94),'LineWidth',1);title(axi2(3),'hinge moment 3 ');
+%     plot(axi2(4),h(:,1),h(:,95),'LineWidth',1);title(axi2(4),'hinge moment 4 ');
+%     hold(axi2,'on');grid(axi2,'on');
+%     
+%      axes('parent',tab.(tabfield{leg_sz+3}));
+%     for j=1:4 
+%         axi3(j) = subplot(2,2,j);
+% %         sublegs9{j}=[sublegs9{j} leg];
+%     end
+%     
+%     plot(axi3(1),h(:,1),h(:,96),'LineWidth',1);title(axi3(1),'bending moment 1');%leggs=[leggs leg];%legend(axi1(1),leggs)%
+%     plot(axi3(2),h(:,1),h(:,97),'LineWidth',1);title(axi3(2),'bending moment 2 ');%leggs=[leggs leg];%legend(axi1(2),leggs)%
+%     plot(axi3(3),h(:,1),h(:,98),'LineWidth',1);title(axi3(3),'bending moment 3 ');
+%     plot(axi3(4),h(:,1),h(:,99),'LineWidth',1);title(axi3(4),'bending moment 4 ');
+%     hold(axi3,'on');grid(axi3,'on');
+% %%%%%%%%%%%%%  
+    
+        if handles.TFlag==1
+            xlim(axi1,[handles.TRange(1) handles.TRange(2)])
+%             xlim(axi2,[handles.TRange(1) handles.TRange(2)])
+%             xlim(axi3,[handles.TRange(1) handles.TRange(2)])
+% %             xlim(axi4,[handles.TRange(1) handles.TRange(2)])
+% %             xlim(axi5,[handles.TRange(1) handles.TRange(2)])
+        else
+            xlim auto
+        end
+        
+    
+            for jj=1:size(handles.legtitles,2)
+                for i=1:size(ends{jj},2)
+                    legends{jj} =[legends{jj} leg+' ('+ends{jj}{i}+')'];
+                end
+            end
+            handles.sz_h(inx)=size(h,1);          
+
+        end 
+
+    end
+
+
+
+for kk=1:size(handles.legtitles,2)
+    
+    if ~isempty(legends)
+%         legend(tab_axes.(axesfield{kk}),legends{kk});
+        legend(tab_axes.(axesfield{kk}),legends{kk},'Location','best');
+        legend(tab_axes.(axesfield{kk}),'boxoff');
+    end
+    if ~isempty(handles.legtitles) 
+        title(tab_axes.(axesfield{kk}),handles.legtitles{kk});
+    end
+    if ~isempty(handles.tab_titles)
+        ylabel(tab_axes.(axesfield{kk}),handles.tab_titles{kk},'fontsize',15);
+    end
+    if ~isempty(handles.tab_titles)
+        xlabel(tab_axes.(axesfield{kk}),'time(sec)','fontsize',15);
+    end
+
+end
+end
+
+function Outvar = limiter( vars ,  val )
+    cond = (vars>val | vars<-val);
+    vars(cond) = val.*sign(vars(cond));
+    Outvar = vars;
+end
